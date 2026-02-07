@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoArt IA - Studio</title>
+    <title>GeoArt AI Studio - Pro</title>
     <style>
         :root {
-            --primary: #8b5cf6; /* Roxo */
-            --accent: #f472b6;   /* Rosa */
-            --dark: #0f172a;     /* Fundo Escuro */
-            --panel: #1e293b;    /* Painel */
+            --primary: #8b5cf6;
+            --accent: #f472b6;
+            --dark: #0f172a;
+            --panel: #1e293b;
             --text: #f8fafc;
         }
 
@@ -26,7 +26,6 @@
             box-sizing: border-box;
         }
 
-        /* --- Cabeçalho --- */
         .header { text-align: center; margin-bottom: 25px; }
         h1 { 
             margin: 0; font-weight: 800; letter-spacing: -1px; font-size: 2.5rem;
@@ -46,113 +45,71 @@
 
         @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
 
-        /* --- Painel Lateral --- */
         .sidebar { display: flex; flex-direction: column; gap: 20px; }
         .panel { background: var(--panel); padding: 20px; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
         .panel h3 { margin: 0 0 15px 0; color: #cbd5e1; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
 
-        /* --- Botões --- */
+        /* Controles Gerais */
+        label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: #94a3b8; }
+        
+        .control-group { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #334155; }
+        .control-group:last-child { border-bottom: none; margin-bottom: 0; }
+
+        /* Botões */
         .btn {
-            width: 100%; padding: 14px; border: none; border-radius: 10px;
+            width: 100%; padding: 12px; border: none; border-radius: 10px;
             font-weight: 700; cursor: pointer; transition: all 0.2s; 
-            display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 12px;
+            display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 10px;
             font-size: 1rem;
         }
         .btn:hover { filter: brightness(1.15); transform: translateY(-2px); }
-        .btn:active { transform: translateY(0); }
-
-        .btn-ai { 
-            background: linear-gradient(135deg, #ec4899, #8b5cf6); 
-            color: white; 
-            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
-        }
+        .btn-ai { background: linear-gradient(135deg, #ec4899, #8b5cf6); color: white; }
         .btn-upload { background: #334155; color: white; }
         .btn-tv { background: #0ea5e9; color: white; }
         .btn-stop { background: #ef4444; color: white; display: none; }
-        .btn-dl { background: #10b981; color: white; margin-top: 10px; }
+        .btn-dl { background: #10b981; color: white; margin-top: 5px; }
 
-        /* --- Input Prompt IA --- */
+        /* Inputs específicos */
+        select, input[type="color"] {
+            width: 100%; padding: 10px; background: #0f172a; border: 1px solid #475569;
+            color: white; border-radius: 8px; cursor: pointer; margin-bottom: 5px;
+        }
+        input[type="color"] { height: 45px; padding: 2px; }
+
+        /* Input IA */
         #aiPromptContainer {
-            display: none;
-            margin-bottom: 15px;
-            background: #0f172a;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #ec4899;
+            display: none; margin-bottom: 15px; background: #0f172a; padding: 10px;
+            border-radius: 8px; border: 1px solid #ec4899;
         }
         #aiPromptInput {
-            width: 100%;
-            background: transparent;
-            border: 1px solid #334155;
-            color: white;
-            padding: 10px;
-            font-size: 0.9rem;
-            outline: none;
-            border-radius: 4px;
-            margin-bottom: 8px;
-            box-sizing: border-box;
+            width: 100%; background: transparent; border: none; color: white;
+            padding: 8px; font-size: 0.9rem; outline: none; box-sizing: border-box;
         }
         #btnGenerateConfirm {
-            background: #ec4899;
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            width: 100%;
-            font-weight: bold;
+            background: #ec4899; color: white; border: none; padding: 8px 12px;
+            border-radius: 6px; cursor: pointer; margin-top: 5px; width: 100%; font-weight: bold;
         }
 
-        /* --- Canvas Wrapper --- */
+        /* Canvas */
         .canvas-wrapper {
-            position: relative;
-            background: #000;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6);
-            min-height: 500px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px dashed #334155;
+            position: relative; background: #000; border-radius: 16px; overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6); min-height: 500px;
+            display: flex; align-items: center; justify-content: center; border: 2px dashed #334155;
         }
-
-        /* Modo Fullscreen */
-        .canvas-wrapper:fullscreen {
-            width: 100vw; height: 100vh; border: none; border-radius: 0;
-            display: flex; align-items: center; justify-content: center; background: #000;
-        }
-
+        .canvas-wrapper:fullscreen { width: 100vw; height: 100vh; border: none; border-radius: 0; }
         canvas { width: 100%; height: 100%; object-fit: contain; display: block; }
         
         .status-overlay {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            pointer-events: none;
-            z-index: 10;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; pointer-events: none; z-index: 10;
         }
-        .status-text { 
-            color: #94a3b8; font-size: 1.2rem; margin-bottom: 10px; 
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-            background: rgba(0,0,0,0.5);
-            padding: 10px;
-            border-radius: 8px;
-        }
+        .status-text { color: #94a3b8; font-size: 1.2rem; margin-bottom: 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
         .loader {
-            width: 48px; height: 48px;
-            border: 5px solid #FFF;
-            border-bottom-color: var(--primary);
-            border-radius: 50%;
-            display: inline-block;
-            box-sizing: border-box;
-            animation: rotation 1s linear infinite;
-            display: none;
+            width: 48px; height: 48px; border: 5px solid #FFF; border-bottom-color: var(--primary);
+            border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; display: none;
         }
         @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* --- Controles Flutuantes --- */
         .fullscreen-btn {
             position: absolute; bottom: 20px; right: 20px;
             background: rgba(255,255,255,0.1); backdrop-filter: blur(5px);
@@ -161,12 +118,13 @@
             cursor: pointer; display: flex; align-items: center; justify-content: center;
             font-size: 1.4rem; transition: 0.2s; z-index: 20;
         }
-        .fullscreen-btn:hover { background: white; color: black; }
 
-        /* --- Controles de Formulário --- */
-        input[type=range] { width: 100%; accent-color: var(--primary); cursor: pointer; }
+        /* Sliders e Checks */
+        input[type=range] { width: 100%; accent-color: var(--primary); cursor: pointer; margin-bottom: 5px;}
         .checkbox-row { display: flex; gap: 10px; margin-bottom: 8px; color: #cbd5e1; font-size: 0.95rem; cursor: pointer; }
         input[type=checkbox] { accent-color: var(--accent); transform: scale(1.1); }
+        
+        .value-display { float: right; color: var(--accent); font-size: 0.8rem; font-weight: bold; }
 
     </style>
 </head>
@@ -174,200 +132,194 @@
 
     <div class="header">
         <h1>GeoArt AI Studio</h1>
-        <p>Transforme Texto e Imagens em Arte Geométrica</p>
+        <p>Arte Geométrica Gerativa</p>
     </div>
 
     <div class="main-grid">
         <div class="sidebar">
             <div class="panel">
-                <h3>Criar</h3>
+                <h3>Fonte da Imagem</h3>
                 
                 <button id="btnToggleAI" class="btn btn-ai">✨ Criar com IA</button>
-                
                 <div id="aiPromptContainer">
-                    <label style="font-size:0.8rem; color:#cbd5e1;">Descreva sua imagem:</label>
-                    <input type="text" id="aiPromptInput" placeholder="Ex: Floresta cyberpunk neon...">
-                    <button id="btnGenerateConfirm">Gerar Imagem</button>
+                    <input type="text" id="aiPromptInput" placeholder="Ex: Paisagem neon...">
+                    <button id="btnGenerateConfirm">Gerar</button>
                 </div>
 
                 <label class="btn btn-upload">
-                    📂 Upload Foto (PC)
+                    📂 Upload
                     <input type="file" id="fileInput" hidden accept="image/*">
                 </label>
                 
-                <hr style="border:0; border-top:1px solid #334155; margin: 15px 0;">
+                <div class="control-group" style="margin-top: 15px;">
+                    <h3>Modo TV</h3>
+                    <label>Trocar imagem a cada:</label>
+                    <select id="tvTimerSelect">
+                        <option value="1">1 Minuto</option>
+                        <option value="2">2 Minutos</option>
+                        <option value="3">3 Minutos</option>
+                        <option value="4">4 Minutos</option>
+                        <option value="5">5 Minutos</option>
+                    </select>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button id="btnTvStart" class="btn btn-tv" style="margin:0;">▶ Iniciar TV</button>
+                        <button id="btnTvStop" class="btn btn-stop" style="margin:0;">⏹ Parar</button>
+                    </div>
+                </div>
 
-                <button id="btnTvStart" class="btn btn-tv">📺 Modo TV (Aleatório)</button>
-                <button id="btnTvStop" class="btn btn-stop">⏹ Parar TV</button>
-                
-                <button id="btnDownload" class="btn btn-dl">💾 Salvar Resultado</button>
+                <button id="btnDownload" class="btn btn-dl">💾 Salvar</button>
             </div>
 
             <div class="panel">
-                <h3>Estilo Geométrico</h3>
-                <label class="checkbox-row"><input type="checkbox" value="circle" checked> Círculos</label>
-                <label class="checkbox-row"><input type="checkbox" value="square" checked> Quadrados</label>
-                <label class="checkbox-row"><input type="checkbox" value="triangle"> Triângulos</label>
-                <label class="checkbox-row"><input type="checkbox" value="line"> Linhas & Riscos</label>
+                <div class="control-group">
+                    <h3>Formas</h3>
+                    <label class="checkbox-row"><input type="checkbox" value="circle" checked> Círculos</label>
+                    <label class="checkbox-row"><input type="checkbox" value="square" checked> Quadrados</label>
+                    <label class="checkbox-row"><input type="checkbox" value="triangle"> Triângulos</label>
+                    <label class="checkbox-row"><input type="checkbox" value="line"> Linhas</label>
+                </div>
+
+                <div class="control-group">
+                    <h3>Cores e Fundo</h3>
+                    <label>Cor de Fundo (Base)</label>
+                    <input type="color" id="bgColorInput" value="#0f172a">
+                    
+                    <label style="margin-top: 15px;">
+                        Transparência das Formas <span id="opacityVal" class="value-display">50%</span>
+                    </label>
+                    <input type="range" id="opacitySlider" min="10" max="100" value="50">
+                </div>
                 
-                <h3 style="margin-top: 25px;">Nível de Abstração</h3>
-                <input type="range" id="abstractionSlider" min="1" max="100" value="50">
-                <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#64748b; margin-top:5px;">
-                    <span>Fotorrealista</span>
-                    <span>Abstrato</span>
+                <div class="control-group">
+                    <h3>Abstração <span id="abstractVal" class="value-display">50%</span></h3>
+                    <input type="range" id="abstractionSlider" min="1" max="100" value="50">
+                    <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#64748b;">
+                        <span>Realista</span>
+                        <span>Abstrato</span>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="canvas-wrapper" id="canvasWrapper">
             <button class="fullscreen-btn" id="fsBtn" title="Tela Cheia">⛶</button>
-            
             <div class="status-overlay">
                 <span class="loader" id="loader"></span>
-                <div class="status-text" id="statusText">Escolha uma opção ao lado<br>para começar.</div>
+                <div class="status-text" id="statusText">Escolha uma opção<br>para começar.</div>
             </div>
-            
             <canvas id="artCanvas"></canvas>
         </div>
     </div>
 
     <script>
-        // --- ELEMENTOS DOM ---
+        // --- ELEMENTOS ---
         const canvas = document.getElementById('artCanvas');
         const ctx = canvas.getContext('2d');
         const wrapper = document.getElementById('canvasWrapper');
         const statusText = document.getElementById('statusText');
         const loader = document.getElementById('loader');
         
-        // Controles
+        // Inputs
         const btnToggleAI = document.getElementById('btnToggleAI');
         const aiPromptContainer = document.getElementById('aiPromptContainer');
         const aiPromptInput = document.getElementById('aiPromptInput');
         const btnGenerateConfirm = document.getElementById('btnGenerateConfirm');
+        
+        // Novos Controles
+        const tvTimerSelect = document.getElementById('tvTimerSelect');
+        const bgColorInput = document.getElementById('bgColorInput');
+        const opacitySlider = document.getElementById('opacitySlider');
+        const opacityVal = document.getElementById('opacityVal');
+        const abstractionSlider = document.getElementById('abstractionSlider');
+        const abstractVal = document.getElementById('abstractVal');
 
         // Estado Global
         let state = {
-            running: false, // modo TV
+            running: false,
             animationId: null,
             timerId: null,
             sourceData: null,
             width: 0,
             height: 0,
             abstraction: 50,
-            shapes: ['circle', 'square']
+            globalOpacity: 0.5, // 0 to 1
+            backgroundColor: '#0f172a',
+            shapes: ['circle', 'square'],
+            tvIntervalTime: 60000 // Padrão 1 min
         };
 
-        // ==========================================
-        // 1. SISTEMA DE IA (Corrigido)
-        // ==========================================
-        
-        btnToggleAI.onclick = () => {
-            // Mostra/Esconde o menu da IA
-            if (aiPromptContainer.style.display === 'block') {
-                aiPromptContainer.style.display = 'none';
-            } else {
-                aiPromptContainer.style.display = 'block';
-                aiPromptInput.focus();
-                // Se o modo TV estiver rodando, para ele
-                if(state.running) document.getElementById('btnTvStop').click();
+        // --- SISTEMA DE DOWNLOAD DE IMAGEM (CORS FIX) ---
+        async function carregarImagemSegura(url, loadingMessage = "Processando...") {
+            try {
+                setLoading(true, loadingMessage);
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Erro de rede");
+                const blob = await response.blob();
+                const objectUrl = URL.createObjectURL(blob);
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.onload = () => {
+                    URL.revokeObjectURL(objectUrl);
+                    setLoading(false);
+                    iniciarArte(img);
+                };
+                img.onerror = () => { throw new Error("Imagem inválida"); };
+                img.src = objectUrl;
+            } catch (err) {
+                console.error(err);
+                setLoading(false);
+                statusText.innerText = "❌ Erro ao carregar imagem.";
+                statusText.style.display = 'block';
+                if (state.running) document.getElementById('btnTvStop').click();
             }
+        }
+
+        // --- CONTROLE DA IA ---
+        btnToggleAI.onclick = () => {
+            aiPromptContainer.style.display = (aiPromptContainer.style.display === 'block') ? 'none' : 'block';
+            if(aiPromptContainer.style.display === 'block') aiPromptInput.focus();
+            if(state.running) document.getElementById('btnTvStop').click();
         };
 
         btnGenerateConfirm.onclick = () => {
             const prompt = aiPromptInput.value.trim();
-            if(!prompt) return alert("Digite algo para a IA criar!");
-            
-            // Esconder o input após clicar
+            if(!prompt) return alert("Digite algo!");
             aiPromptContainer.style.display = 'none';
-            
-            // 1. URL da API
             const safePrompt = encodeURIComponent(prompt);
-            const seed = Math.floor(Math.random() * 1000);
-            // Removi o 'model=flux' para garantir maior compatibilidade, mas você pode por de volta se quiser
+            const seed = Math.floor(Math.random() * 9999);
             const url = `https://image.pollinations.ai/prompt/${safePrompt}?width=1280&height=720&nologo=true&seed=${seed}&model=flux`;
-            
-            setLoading(true, "🤖 A IA está sonhando...");
-            
-            // 2. CORREÇÃO AQUI: Usar fetch para baixar como Blob
-            fetch(url)
-                .then(response => {
-                    if (!response.ok) throw new Error("Erro na API");
-                    return response.blob();
-                })
-                .then(blob => {
-                    // Cria uma URL local temporária para a imagem baixada
-                    const objectUrl = URL.createObjectURL(blob);
-                    
-                    const img = new Image();
-                    // Importante manter o crossOrigin, mesmo com blob, por segurança
-                    img.crossOrigin = "Anonymous"; 
-                    
-                    img.onload = () => {
-                        setLoading(false);
-                        iniciarArte(img);
-                        // Limpa a memória da URL temporária
-                        URL.revokeObjectURL(objectUrl);
-                    };
-                    
-                    img.onerror = () => {
-                        throw new Error("Falha ao processar imagem");
-                    };
-                    
-                    img.src = objectUrl;
-                })
-                .catch(err => {
-                    console.error(err);
-                    setLoading(false);
-                    statusText.innerText = "❌ Erro: O navegador bloqueou a imagem ou a IA falhou.";
-                    statusText.style.display = 'block';
-                    alert("Dica: Tente um navegador diferente ou verifique se extensões de bloqueio de anúncios não estão impedindo a API.");
-                });
+            carregarImagemSegura(url, "🤖 IA Criando...");
         };
+        aiPromptInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') btnGenerateConfirm.click(); });
 
-        // Atalho Enter
-        aiPromptInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') btnGenerateConfirm.click();
-        });
-
-
-        // ==========================================
-        // 2. LÓGICA DE PINTURA (ARTE)
-        // ==========================================
-        
+        // --- ARTE GEOMÉTRICA ---
         function iniciarArte(img) {
             if (state.animationId) cancelAnimationFrame(state.animationId);
             
-            // Ajustar tamanho do canvas
-            const maxWidth = 1920; 
+            const maxWidth = 1600; 
             const scale = Math.min(1, maxWidth / img.width);
-            
             canvas.width = img.width * scale;
             canvas.height = img.height * scale;
             state.width = canvas.width;
             state.height = canvas.height;
 
-            // Desenhar imagem original para ler os dados
+            // Desenha imagem original invisível para pegar dados
             ctx.drawImage(img, 0, 0, state.width, state.height);
-            
             try {
-                // Tenta pegar os pixels (aqui é onde dá erro se não usar servidor local)
                 state.sourceData = ctx.getImageData(0, 0, state.width, state.height).data;
             } catch(e) {
-                alert("ERRO DE SEGURANÇA (CORS):\n\nO navegador bloqueou a leitura da imagem.\n\nSOLUÇÃO: Você precisa rodar este arquivo usando um servidor local (Live Server no VS Code ou Python), e não clicando duas vezes no arquivo.");
-                return;
+                alert("Erro de segurança do navegador."); return;
             }
 
-            // Limpar a tela (fundo preto)
-            ctx.fillStyle = '#0f172a';
+            // 1. APLICA A COR DE FUNDO ESCOLHIDA
+            ctx.fillStyle = state.backgroundColor;
             ctx.fillRect(0, 0, state.width, state.height);
             
-            // Começar loop
             loopDesenho();
         }
 
         function loopDesenho() {
-            // Velocidade do desenho
-            const speed = Math.floor(map(state.abstraction, 1, 100, 300, 15));
+            const speed = Math.floor(map(state.abstraction, 1, 100, 200, 10));
             
             for(let i=0; i<speed; i++) {
                 const x = Math.floor(Math.random() * state.width);
@@ -377,24 +329,27 @@
                 const r = state.sourceData[index];
                 const g = state.sourceData[index+1];
                 const b = state.sourceData[index+2];
-                const a = state.sourceData[index+3]; // Alpha
+                // Ignorar pixels muito transparentes da imagem original
+                if (state.sourceData[index+3] < 50) continue; 
 
-                if (a < 50) continue; // Pular pixels transparentes
-
-                // Tamanho e Opacidade
-                const minSize = map(state.abstraction, 1, 100, 2, 10);
-                const maxSize = map(state.abstraction, 1, 100, 5, 120);
+                // Tamanho dinâmico
+                const minSize = map(state.abstraction, 1, 100, 2, 15);
+                const maxSize = map(state.abstraction, 1, 100, 6, 150);
                 const size = Math.random() * (maxSize - minSize) + minSize;
-                const opacity = map(state.abstraction, 1, 100, 0.9, 0.4);
-
-                ctx.fillStyle = `rgba(${r},${g},${b},${opacity})`;
                 
-                // Escolher forma
+                // 2. APLICA A TRANSPARÊNCIA DO SLIDER
+                // O slider controla o alpha global. Se o slider for 50%, shapes tem 0.5 alpha.
+                // A abstração também influencia levemente para não ficar blocão sólido no modo realista
+                const abstFactor = map(state.abstraction, 1, 100, 1, 0.5); 
+                const finalAlpha = state.globalOpacity * abstFactor;
+
+                ctx.fillStyle = `rgba(${r},${g},${b},${finalAlpha})`;
+                
+                // Escolha de Forma
                 if(state.shapes.length === 0) state.shapes = ['circle'];
                 const shape = state.shapes[Math.floor(Math.random() * state.shapes.length)];
                 
                 ctx.beginPath();
-                
                 if(shape === 'circle') {
                     ctx.arc(x, y, size/2, 0, Math.PI*2);
                     ctx.fill();
@@ -402,7 +357,7 @@
                 else if(shape === 'square') {
                     ctx.save();
                     ctx.translate(x, y);
-                    ctx.rotate(Math.random() * Math.PI);
+                    ctx.rotate(Math.random() * Math.PI); 
                     ctx.fillRect(-size/2, -size/2, size, size);
                     ctx.restore();
                 } 
@@ -418,7 +373,7 @@
                     ctx.restore();
                 } 
                 else if(shape === 'line') {
-                    ctx.strokeStyle = `rgba(${r},${g},${b},${opacity + 0.2})`;
+                    ctx.strokeStyle = `rgba(${r},${g},${b},${finalAlpha + 0.2})`;
                     ctx.lineWidth = Math.max(1, size/10);
                     ctx.moveTo(x, y);
                     const angle = Math.random() * Math.PI * 2;
@@ -429,16 +384,53 @@
             state.animationId = requestAnimationFrame(loopDesenho);
         }
 
-        // ==========================================
-        // 3. MODO TV & UPLOAD
-        // ==========================================
+        // --- CONTROLES DE UI ATUALIZADOS ---
+        
+        // Cor de Fundo
+        bgColorInput.oninput = (e) => {
+            state.backgroundColor = e.target.value;
+            // Reinicia o fundo suavemente (opcional, aqui só armazena para a próxima imagem ou limpa atual)
+            // Se quiser limpar imediatamente, descomente abaixo:
+            // ctx.fillStyle = state.backgroundColor;
+            // ctx.fillRect(0, 0, state.width, state.height);
+        };
+
+        // Opacidade
+        opacitySlider.oninput = (e) => {
+            const val = e.target.value;
+            state.globalOpacity = val / 100;
+            opacityVal.innerText = val + "%";
+        };
+
+        // Abstração
+        abstractionSlider.oninput = (e) => {
+            state.abstraction = parseInt(e.target.value);
+            abstractVal.innerText = state.abstraction + "%";
+        };
+
+        // Checkboxes
+        document.querySelectorAll('input[type=checkbox]').forEach(cb => {
+            cb.onchange = () => {
+                state.shapes = Array.from(document.querySelectorAll('input[type=checkbox]:checked')).map(c => c.value);
+            };
+        });
+
+        // --- MODO TV E TIMER ---
+        tvTimerSelect.onchange = (e) => {
+            state.tvIntervalTime = parseInt(e.target.value) * 60000; // Minutos para ms
+            // Se estiver rodando, reinicia o timer com novo tempo
+            if (state.running) {
+                clearInterval(state.timerId);
+                state.timerId = setInterval(rodarTv, state.tvIntervalTime);
+            }
+        };
 
         document.getElementById('btnTvStart').onclick = () => {
             state.running = true;
             document.getElementById('btnTvStart').style.display = 'none';
             document.getElementById('btnTvStop').style.display = 'flex';
             rodarTv();
-            state.timerId = setInterval(rodarTv, 60000); // Troca a cada 60s
+            state.timerId = setInterval(rodarTv, state.tvIntervalTime);
         };
 
         document.getElementById('btnTvStop').onclick = () => {
@@ -450,18 +442,9 @@
         };
 
         function rodarTv() {
-            setLoading(true, "Carregando imagem aleatória...");
-            const img = new Image();
-            img.crossOrigin = "Anonymous";
-            // Random ID para evitar cache
-            img.src = `https://picsum.photos/1280/720?random=${Date.now()}`;
-            img.onload = () => {
-                setLoading(false);
-                iniciarArte(img);
-            };
-            img.onerror = () => {
-                statusText.innerHTML = "Erro ao carregar imagem aleatória.";
-            }
+            if (!state.running) return;
+            const url = `https://picsum.photos/1280/720?random=${Date.now()}`;
+            carregarImagemSegura(url, "Modo TV: Trocando...");
         }
 
         // Upload Manual
@@ -478,29 +461,18 @@
             reader.readAsDataURL(file);
         };
 
-        // ==========================================
-        // 4. UTILITÁRIOS
-        // ==========================================
-
+        // Utils
         function setLoading(isLoading, text = "") {
             loader.style.display = isLoading ? 'inline-block' : 'none';
             statusText.style.display = isLoading ? 'block' : 'none';
             statusText.innerHTML = text;
-            if(isLoading) {
-                canvas.style.opacity = 0.3;
-                if(state.animationId) cancelAnimationFrame(state.animationId);
-            } else {
-                canvas.style.opacity = 1;
-            }
+            canvas.style.opacity = isLoading ? 0.3 : 1;
         }
 
-        // Tela Cheia
         document.getElementById('fsBtn').onclick = () => {
-            if (!document.fullscreenElement) wrapper.requestFullscreen();
-            else document.exitFullscreen();
+            if (!document.fullscreenElement) wrapper.requestFullscreen(); else document.exitFullscreen();
         };
 
-        // Download
         document.getElementById('btnDownload').onclick = () => {
             const link = document.createElement('a');
             link.download = `GeoArt-${Date.now()}.png`;
@@ -508,21 +480,8 @@
             link.click();
         };
 
-        // Checkboxes e Sliders
-        document.querySelectorAll('input[type=checkbox]').forEach(cb => {
-            cb.onchange = () => {
-                state.shapes = Array.from(document.querySelectorAll('input[type=checkbox]:checked')).map(c => c.value);
-            };
-        });
-
-        document.getElementById('abstractionSlider').oninput = (e) => {
-            state.abstraction = parseInt(e.target.value);
-            if(state.sourceData) ctx.fillStyle = 'rgba(0,0,0,0.1)'; // Flash visual
-        };
-
         function map(v, a, b, c, d) { return c + ((v-a)/(b-a)) * (d-c); }
 
     </script>
 </body>
-
 </html>
