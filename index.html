@@ -3,224 +3,430 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoArt AI - GitHub Edition</title>
+    <title>GeoArt Studio - Controle Total</title>
     <style>
-        :root { --primary: #8b5cf6; --dark: #0f172a; --panel: #1e293b; --text: #f8fafc; }
-        body { font-family: sans-serif; background: var(--dark); color: var(--text); display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; }
+        :root {
+            --primary: #8b5cf6;
+            --accent: #f472b6;
+            --dark: #0f172a;
+            --panel: #1e293b;
+            --text: #f8fafc;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--dark);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .header { text-align: center; margin-bottom: 25px; }
+        h1 { 
+            margin: 0; font-weight: 800; letter-spacing: -1px; font-size: 2.5rem;
+            background: linear-gradient(to right, #c084fc, #6366f1); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 25px;
+            width: 100%;
+            max-width: 1500px;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+
+        .sidebar { display: flex; flex-direction: column; gap: 20px; }
+        .panel { background: var(--panel); padding: 20px; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+        .panel h3 { margin: 0 0 15px 0; color: #cbd5e1; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+
+        /* Controles Gerais */
+        label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: #94a3b8; }
+        .control-group { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #334155; }
         
-        .main-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; max-width: 1200px; width: 100%; }
-        .controls { background: var(--panel); padding: 20px; border-radius: 12px; min-width: 300px; flex: 1; }
-        .canvas-area { position: relative; background: #000; border-radius: 12px; overflow: hidden; min-height: 400px; flex: 2; border: 2px dashed #334155; display:flex; align-items:center; justify-content:center;}
-        
+        /* Botões */
+        .btn {
+            width: 100%; padding: 12px; border: none; border-radius: 10px;
+            font-weight: 700; cursor: pointer; transition: all 0.2s; 
+            display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 10px;
+            font-size: 1rem;
+        }
+        .btn:hover { filter: brightness(1.15); transform: translateY(-2px); }
+        .btn-ai { background: linear-gradient(135deg, #ec4899, #8b5cf6); color: white; }
+        .btn-upload { background: #334155; color: white; }
+        .btn-tv { background: #0ea5e9; color: white; }
+        .btn-stop { background: #ef4444; color: white; display: none; }
+        .btn-dl { background: #10b981; color: white; margin-top: 5px; }
+
+        /* Inputs */
+        select, input[type="color"] {
+            width: 100%; padding: 10px; background: #0f172a; border: 1px solid #475569;
+            color: white; border-radius: 8px; cursor: pointer; margin-bottom: 5px;
+        }
+        input[type="color"] { height: 45px; padding: 2px; }
+
+        /* Input IA */
+        #aiPromptContainer { display: none; margin-bottom: 15px; background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #ec4899; }
+        #aiPromptInput { width: 100%; background: transparent; border: none; color: white; padding: 8px; outline: none; }
+        #btnGenerateConfirm { background: #ec4899; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; margin-top: 5px; width: 100%; }
+
+        /* Canvas Area */
+        .canvas-wrapper {
+            position: relative; background: #000; border-radius: 16px; overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6); min-height: 500px;
+            display: flex; align-items: center; justify-content: center; border: 2px dashed #334155;
+        }
+        .canvas-wrapper:fullscreen { width: 100vw; height: 100vh; border: none; }
         canvas { width: 100%; height: 100%; object-fit: contain; }
-        
-        button, select, input[type="text"] { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 6px; border: none; }
-        button { cursor: pointer; font-weight: bold; background: var(--primary); color: white; transition: 0.2s; }
-        button:hover { filter: brightness(1.2); }
-        input[type="text"] { background: #334155; color: white; }
-        
-        .status { position: absolute; color: white; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 8px; pointer-events: none; display: none; }
+
+        .status-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
+        .loader { width: 48px; height: 48px; border: 5px solid #FFF; border-bottom-color: var(--primary); border-radius: 50%; display: none; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Sliders */
+        input[type=range] { width: 100%; accent-color: var(--primary); cursor: pointer; margin-bottom: 5px;}
+        .value-display { float: right; color: var(--accent); font-size: 0.8rem; font-weight: bold; }
+        .checkbox-row { display: flex; gap: 10px; margin-bottom: 8px; cursor: pointer; }
+
     </style>
 </head>
 <body>
 
-    <h1>GeoArt AI Studio</h1>
+    <div class="header">
+        <h1>GeoArt AI Studio</h1>
+    </div>
 
-    <div class="main-container">
-        <div class="controls">
-            <h3>1. Configurar IA</h3>
-            <input type="text" id="promptInput" placeholder="Ex: Cyberpunk city, neon lights...">
-            
-            <h3>2. Modo TV (Tempo)</h3>
-            <select id="timerSelect">
-                <option value="1">1 Minuto</option>
-                <option value="2">2 Minutos</option>
-                <option value="5">5 Minutos</option>
-            </select>
-            
-            <div style="display:flex; gap:10px;">
-                <button id="btnStart" style="background:#10b981;">▶ Iniciar TV</button>
-                <button id="btnStop" style="background:#ef4444; display:none;">⏹ Parar</button>
+    <div class="main-grid">
+        <div class="sidebar">
+            <div class="panel">
+                <h3>Fonte da Imagem</h3>
+                <button id="btnToggleAI" class="btn btn-ai">✨ Criar com IA</button>
+                <div id="aiPromptContainer">
+                    <input type="text" id="aiPromptInput" placeholder="Descreva sua ideia...">
+                    <button id="btnGenerateConfirm">Gerar</button>
+                </div>
+                <label class="btn btn-upload">
+                    📂 Upload Imagem
+                    <input type="file" id="fileInput" hidden accept="image/*">
+                </label>
+                
+                <div class="control-group" style="margin-top: 15px;">
+                    <h3>Modo TV (Automático)</h3>
+                    <label>Trocar imagem a cada:</label>
+                    <select id="tvTimerSelect">
+                        <option value="1">1 Minuto</option>
+                        <option value="2">2 Minutos</option>
+                        <option value="3">3 Minutos</option>
+                        <option value="4">4 Minutos</option>
+                        <option value="5">5 Minutos</option>
+                    </select>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button id="btnTvStart" class="btn btn-tv" style="margin:0;">▶ Iniciar</button>
+                        <button id="btnTvStop" class="btn btn-stop" style="margin:0;">⏹ Parar</button>
+                    </div>
+                </div>
+
+                <button id="btnDownload" class="btn btn-dl">💾 Salvar Arte</button>
             </div>
 
-            <hr style="border-color: #334155; margin: 20px 0;">
+            <div class="panel">
+                <div class="control-group">
+                    <h3>Formas</h3>
+                    <label class="checkbox-row"><input type="checkbox" value="circle" checked> Círculos</label>
+                    <label class="checkbox-row"><input type="checkbox" value="square" checked> Quadrados</label>
+                    <label class="checkbox-row"><input type="checkbox" value="line"> Linhas</label>
+                </div>
 
-            <h3>3. Estilo</h3>
-            <label>Fundo:</label>
-            <input type="color" id="bgColor" value="#0f172a" style="width:100%; height:40px;">
-            
-            <label>Transparência Formas:</label>
-            <input type="range" id="opacitySlider" min="5" max="100" value="30" style="width:100%;">
-            
-            <button id="btnDownload" style="margin-top:20px;">💾 Salvar Arte</button>
+                <div class="control-group">
+                    <h3>Estilo & Atmosfera</h3>
+                    
+                    <label>Cor de Fundo (Base)</label>
+                    <input type="color" id="bgColorInput" value="#1e1b4b"> <p style="font-size: 0.75rem; color: #64748b; margin-top: -3px;">
+                        *Mude a cor para reiniciar a tela com novo fundo.
+                    </p>
+
+                    <label style="margin-top: 15px;">
+                        Transparência das Formas <span id="opacityVal" class="value-display">20%</span>
+                    </label>
+                    <input type="range" id="opacitySlider" min="5" max="100" value="20">
+                </div>
+                
+                <div class="control-group">
+                    <h3>Abstração <span id="abstractVal" class="value-display">50%</span></h3>
+                    <input type="range" id="abstractionSlider" min="1" max="100" value="50">
+                </div>
+            </div>
         </div>
 
-        <div class="canvas-area">
-            <div class="status" id="statusMsg">Carregando...</div>
+        <div class="canvas-wrapper" id="canvasWrapper">
+            <div class="status-overlay">
+                <span class="loader" id="loader"></span>
+                <div class="status-text" id="statusText">Carregue uma imagem<br>para começar.</div>
+            </div>
             <canvas id="artCanvas"></canvas>
         </div>
     </div>
 
     <script>
-        // --- CONFIGURAÇÃO ---
+        // --- ELEMENTOS E ESTADO ---
         const canvas = document.getElementById('artCanvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        const statusMsg = document.getElementById('statusMsg');
+        const loader = document.getElementById('loader');
+        const statusText = document.getElementById('statusText');
 
+        // Inputs
+        const tvTimerSelect = document.getElementById('tvTimerSelect');
+        const bgColorInput = document.getElementById('bgColorInput');
+        const opacitySlider = document.getElementById('opacitySlider');
+        const opacityVal = document.getElementById('opacityVal');
+        
         let state = {
-            running: false,
-            intervalId: null,
-            animationId: null,
+            running: false,         // Se a arte está sendo desenhada
+            tvMode: false,          // Se o modo TV está ativo
+            animationId: null,      // ID da animação de desenho
+            tvIntervalId: null,     // ID do cronômetro da TV
+            sourceData: null,       // Dados dos pixels da imagem original
             width: 0,
             height: 0,
-            pixels: null,
-            bgColor: '#0f172a',
-            opacity: 0.3
+            abstraction: 50,
+            
+            // Novas Variáveis de Controle
+            backgroundColor: '#1e1b4b', // Começa com um azul escuro bonito
+            shapeOpacity: 0.20,         // Começa bem transparente (20%)
+            shapes: ['circle', 'square']
         };
 
-        // --- MOTOR DE IMAGEM (CORRIGIDO PARA GITHUB/WEB) ---
-        async function carregarImagem(url) {
-            if(state.animationId) cancelAnimationFrame(state.animationId);
-            
-            statusMsg.style.display = 'block';
-            statusMsg.innerText = "Baixando imagem da IA...";
+        // --- SISTEMA DE ARTE ---
 
-            try {
-                // Fetch resolve problemas de CORS melhor que Image.src direto
-                const response = await fetch(url);
-                if (!response.ok) throw new Error("Erro na API");
-                const blob = await response.blob();
-                const objectUrl = URL.createObjectURL(blob);
+        function iniciarArte(img) {
+            if (state.animationId) cancelAnimationFrame(state.animationId);
 
-                const img = new Image();
-                img.crossOrigin = "Anonymous"; // CRUCIAL PARA O CANVAS FUNCIONAR
-                
-                img.onload = () => {
-                    URL.revokeObjectURL(objectUrl);
-                    statusMsg.style.display = 'none';
-                    iniciarGeoArt(img);
-                };
-                
-                img.onerror = () => { throw new Error("Imagem inválida"); };
-                img.src = objectUrl;
-
-            } catch (error) {
-                console.error(error);
-                statusMsg.innerText = "Erro: " + error.message;
-            }
-        }
-
-        function iniciarGeoArt(img) {
-            // Configurar Canvas
-            const scale = Math.min(1, 1200 / img.width);
+            // 1. Configurar Tamanho
+            const maxWidth = 1600; 
+            const scale = Math.min(1, maxWidth / img.width);
             canvas.width = img.width * scale;
             canvas.height = img.height * scale;
             state.width = canvas.width;
             state.height = canvas.height;
 
-            // Desenhar imagem para ler pixels
+            // 2. Extrair dados da imagem (invisivelmente)
             ctx.drawImage(img, 0, 0, state.width, state.height);
-            
             try {
-                // Tenta ler os pixels
-                state.pixels = ctx.getImageData(0, 0, state.width, state.height).data;
-            } catch (e) {
-                alert("Erro de Segurança do Navegador! Use HTTPS ou Localhost.");
-                return;
+                state.sourceData = ctx.getImageData(0, 0, state.width, state.height).data;
+            } catch(e) {
+                alert("Erro de segurança (CORS). Tente outra imagem."); return;
             }
 
-            // Limpa com a cor de fundo escolhida
-            ctx.fillStyle = state.bgColor;
-            ctx.fillRect(0, 0, state.width, state.height);
-
-            // Inicia Loop
-            if (!state.running) state.running = true;
+            // 3. Aplicar o Fundo Escolhido pelo Usuário
+            aplicarFundo();
+            
+            // 4. Iniciar Loop
+            state.running = true;
             loopDesenho();
+        }
+
+        // Função separada para permitir resetar só o fundo
+        function aplicarFundo() {
+            ctx.fillStyle = state.backgroundColor;
+            ctx.fillRect(0, 0, state.width, state.height);
         }
 
         function loopDesenho() {
             if (!state.running) return;
 
-            // Desenha 50 formas por frame
-            for(let i=0; i<50; i++) {
+            const speed = Math.floor(map(state.abstraction, 1, 100, 200, 20));
+            
+            for(let i=0; i<speed; i++) {
                 const x = Math.floor(Math.random() * state.width);
                 const y = Math.floor(Math.random() * state.height);
                 const index = (y * state.width + x) * 4;
-
-                const r = state.pixels[index];
-                const g = state.pixels[index+1];
-                const b = state.pixels[index+2];
-                const a = state.pixels[index+3];
-
-                if (a < 50) continue; // Pula pixel transparente
-
-                ctx.fillStyle = `rgba(${r},${g},${b},${state.opacity})`;
                 
-                const size = Math.random() * 40 + 5;
+                const r = state.sourceData[index];
+                const g = state.sourceData[index+1];
+                const b = state.sourceData[index+2];
+                // Se o pixel original for transparente, ignorar
+                if (state.sourceData[index+3] < 50) continue;
+
+                // Tamanho dinâmico
+                const minSize = map(state.abstraction, 1, 100, 2, 10);
+                const maxSize = map(state.abstraction, 1, 100, 5, 100);
+                const size = Math.random() * (maxSize - minSize) + minSize;
                 
-                // Desenha Círculo
+                // *** AQUI A MÁGICA DA TRANSPARÊNCIA ACONTECE ***
+                // Usamos a cor do pixel original (rgb) mas com a opacidade (alpha) do slider
+                ctx.fillStyle = `rgba(${r},${g},${b},${state.shapeOpacity})`;
+                
+                const shape = state.shapes[Math.floor(Math.random() * state.shapes.length)];
+                
                 ctx.beginPath();
-                ctx.arc(x, y, size/2, 0, Math.PI*2);
-                ctx.fill();
+                if(shape === 'circle') {
+                    ctx.arc(x, y, size/2, 0, Math.PI*2);
+                    ctx.fill();
+                } else if(shape === 'square') {
+                    ctx.save();
+                    ctx.translate(x, y);
+                    ctx.rotate(Math.random() * Math.PI);
+                    ctx.fillRect(-size/2, -size/2, size, size);
+                    ctx.restore();
+                } else if(shape === 'line') {
+                    // Linhas precisam ser um pouco mais visíveis
+                    ctx.strokeStyle = `rgba(${r},${g},${b},${Math.min(1, state.shapeOpacity + 0.2)})`;
+                    ctx.lineWidth = Math.max(1, size/10);
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(x + Math.cos(Math.random()*Math.PI*2)*size, y + Math.sin(Math.random()*Math.PI*2)*size);
+                    ctx.stroke();
+                }
             }
             state.animationId = requestAnimationFrame(loopDesenho);
         }
 
-        // --- CONTROLES DA TV ---
-        function proximaImagem() {
-            const prompt = document.getElementById('promptInput').value || "Abstract geometric art, colorful";
-            const seed = Math.floor(Math.random() * 999999);
-            // URL DA API POLLINATIONS (MODELO FLUX)
-            const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=768&seed=${seed}&model=flux&nologo=true`;
+        // --- CONTROLE DE FUNDO E TRANSPARÊNCIA ---
+
+        // 1. Mudança de Cor de Fundo
+        bgColorInput.addEventListener('input', (e) => {
+            state.backgroundColor = e.target.value;
+            // Quando muda o fundo, é legal limpar a tela para ver o efeito da nova cor base
+            if (state.sourceData) { // Só limpa se já tiver uma imagem carregada
+                aplicarFundo();
+            }
+        });
+
+        // 2. Mudança de Opacidade (Transparência)
+        opacitySlider.addEventListener('input', (e) => {
+            const valor = parseInt(e.target.value);
+            state.shapeOpacity = valor / 100; // Converte 0-100 para 0.0-1.0
+            opacityVal.innerText = valor + "%";
+        });
+
+        // --- MODO TV (TIMER 1-5 MIN) ---
+
+        const btnTvStart = document.getElementById('btnTvStart');
+        const btnTvStop = document.getElementById('btnTvStop');
+
+        // Atualizar Timer Dinamicamente
+        tvTimerSelect.addEventListener('change', () => {
+            // Se a TV já estiver rodando, reinicia o timer com o novo tempo
+            if (state.tvMode) {
+                clearInterval(state.tvIntervalId);
+                iniciarTimerTV();
+            }
+        });
+
+        btnTvStart.onclick = () => {
+            state.tvMode = true;
+            btnTvStart.style.display = 'none';
+            btnTvStop.style.display = 'flex';
+            rodarTv(); // Roda a primeira vez imediatamente
+            iniciarTimerTV(); // Inicia o ciclo
+        };
+
+        btnTvStop.onclick = () => {
+            state.tvMode = false;
+            btnTvStart.style.display = 'flex';
+            btnTvStop.style.display = 'none';
+            clearInterval(state.tvIntervalId);
+        };
+
+        function iniciarTimerTV() {
+            const minutos = parseInt(tvTimerSelect.value);
+            const milissegundos = minutos * 60 * 1000; // Converte min para ms
+            console.log(`Timer definido para: ${minutos} minutos`);
             
+            state.tvIntervalId = setInterval(() => {
+                rodarTv();
+            }, milissegundos);
+        }
+
+        function rodarTv() {
+            const prompt = document.getElementById('aiPromptInput').value;
+            let url = "";
+            if(prompt) {
+                const seed = Math.floor(Math.random() * 999999);
+                url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1280&height=720&seed=${seed}&model=flux`;
+            } else {
+                url = `https://picsum.photos/1280/720?random=${Date.now()}`;
+            }
             carregarImagem(url);
         }
 
-        document.getElementById('btnStart').onclick = () => {
-            state.running = true;
-            document.getElementById('btnStart').style.display = 'none';
-            document.getElementById('btnStop').style.display = 'block';
-            
-            proximaImagem(); // Primeira imagem
-            
-            const minutos = parseInt(document.getElementById('timerSelect').value);
-            state.intervalId = setInterval(proximaImagem, minutos * 60 * 1000);
+        // --- SISTEMA DE CARREGAMENTO (CORS) ---
+        async function carregarImagem(url) {
+            setLoading(true);
+            try {
+                const res = await fetch(url);
+                const blob = await res.blob();
+                const img = new Image();
+                img.onload = () => {
+                    setLoading(false);
+                    iniciarArte(img);
+                };
+                img.src = URL.createObjectURL(blob);
+            } catch(e) {
+                console.error(e);
+                setLoading(false);
+                statusText.innerText = "Erro ao carregar.";
+            }
+        }
+
+        // --- OUTROS CONTROLES ---
+        document.getElementById('btnToggleAI').onclick = () => {
+            const div = document.getElementById('aiPromptContainer');
+            div.style.display = div.style.display === 'block' ? 'none' : 'block';
+        };
+        
+        document.getElementById('btnGenerateConfirm').onclick = () => {
+            document.getElementById('aiPromptContainer').style.display = 'none';
+            rodarTv(); // Usa a lógica da TV para gerar uma imagem única também
         };
 
-        document.getElementById('btnStop').onclick = () => {
-            state.running = false;
-            document.getElementById('btnStart').style.display = 'block';
-            document.getElementById('btnStop').style.display = 'none';
-            clearInterval(state.intervalId);
-            cancelAnimationFrame(state.animationId);
+        document.getElementById('fileInput').onchange = (e) => {
+            const file = e.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    const img = new Image();
+                    img.onload = () => iniciarArte(img);
+                    img.src = evt.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
         };
-
-        // UI Updates
-        document.getElementById('bgColor').addEventListener('input', (e) => {
-            state.bgColor = e.target.value;
-            ctx.fillStyle = state.bgColor;
-            ctx.fillRect(0, 0, state.width, state.height);
-        });
-
-        document.getElementById('opacitySlider').addEventListener('input', (e) => {
-            state.opacity = e.target.value / 100;
-        });
 
         document.getElementById('btnDownload').onclick = () => {
             const link = document.createElement('a');
-            link.download = 'arte-ia.png';
+            link.download = 'geoart.png';
             link.href = canvas.toDataURL();
             link.click();
         };
 
-        // Timer dinâmico
-        document.getElementById('timerSelect').addEventListener('change', (e) => {
-            if(state.running) {
-                clearInterval(state.intervalId);
-                const minutos = parseInt(e.target.value);
-                state.intervalId = setInterval(proximaImagem, minutos * 60 * 1000);
-            }
+        document.getElementById('abstractionSlider').oninput = (e) => {
+            state.abstraction = parseInt(e.target.value);
+            document.getElementById('abstractVal').innerText = e.target.value + "%";
+        };
+
+        document.querySelectorAll('input[type=checkbox]').forEach(cb => {
+            cb.onchange = () => {
+                state.shapes = Array.from(document.querySelectorAll('input[type=checkbox]:checked')).map(c => c.value);
+                if(state.shapes.length === 0) state.shapes = ['circle'];
+            };
         });
+
+        // Utils
+        function setLoading(bool) {
+            loader.style.display = bool ? 'inline-block' : 'none';
+            statusText.style.display = bool ? 'block' : 'none';
+            if(bool) statusText.innerText = "Processando...";
+            canvas.style.opacity = bool ? 0.3 : 1;
+        }
+        function map(v, a, b, c, d) { return c + ((v-a)/(b-a)) * (d-c); }
 
     </script>
 </body>
