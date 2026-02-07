@@ -1,55 +1,156 @@
-<script>
-        // CONFIGURAÇÃO
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoArt AI - Web Edition (Corrigido)</title>
+    <style>
+        /* --- ESTILO WEB MODERNO --- */
+        :root { --bg: #0f172a; --panel: #1e293b; --accent: #8b5cf6; --text: #f8fafc; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; overflow: hidden; }
+        
+        /* Layout Responsivo */
+        .sidebar { width: 280px; background: var(--panel); padding: 20px; display: flex; flex-direction: column; gap: 15px; border-right: 1px solid #334155; box-shadow: 2px 0 10px rgba(0,0,0,0.3); z-index: 10; }
+        .main { flex: 1; position: relative; background: #000; display: flex; justify-content: center; align-items: center; background-image: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); }
+        
+        h2 { margin: 0 0 5px 0; font-size: 1.5rem; background: linear-gradient(to right, #c084fc, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        p.subtitle { margin: 0 0 20px 0; font-size: 0.8rem; color: #94a3b8; }
+        
+        /* Botões */
+        button { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: 600; transition: all 0.2s; margin-bottom: 8px; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        button:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        button:active { transform: translateY(0); }
+        
+        .btn-ai { background: linear-gradient(135deg, #a855f7, #ec4899); box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3); }
+        .btn-search { background: #3b82f6; }
+        .btn-rand { background: #f59e0b; }
+        .btn-dl { position: absolute; bottom: 25px; right: 25px; width: auto; padding: 12px 25px; background: #10b981; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); border-radius: 30px; }
+
+        /* Inputs e Painéis */
+        .input-group { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 10px; display: none; animation: slideDown 0.3s ease; }
+        input { width: 100%; padding: 10px; background: #0f172a; border: 1px solid #475569; color: white; border-radius: 6px; margin-bottom: 10px; outline: none; }
+        input:focus { border-color: var(--accent); }
+        
+        @keyframes slideDown { from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:translateY(0);} }
+
+        /* Overlay de Carregamento */
+        #loader { position: absolute; inset: 0; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 50; backdrop-filter: blur(5px); }
+        .spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.1); border-left-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Canvas */
+        canvas { max-width: 100%; max-height: 100%; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div>
+            <h2>GeoArt AI</h2>
+            <p class="subtitle">Versão Web (Corrigida)</p>
+        </div>
+        
+        <button class="btn-ai" onclick="openPanel('ai')">✨ Criar com IA</button>
+        <div id="panel-ai" class="input-group">
+            <input type="text" id="aiInput" placeholder="Ex: Cyberpunk city neon..." onkeypress="handleEnter(event, runAI)">
+            <button class="btn-ai" onclick="runAI()">Gerar Arte</button>
+        </div>
+
+        <button class="btn-search" onclick="openPanel('search')">🔍 Buscar Foto</button>
+        <div id="panel-search" class="input-group">
+            <input type="text" id="searchInput" placeholder="Ex: Montanha, Praia..." onkeypress="handleEnter(event, runSearch)">
+            <button class="btn-search" onclick="runSearch()">Pesquisar</button>
+        </div>
+
+        <button class="btn-rand" onclick="runRandom()">🎲 Aleatório</button>
+        
+        <div style="margin-top: auto; border-top: 1px solid #334155; padding-top: 15px;">
+            <label style="display: flex; align-items: center; cursor: pointer; gap: 10px; color: #cbd5e1; font-size: 0.9rem;">
+                <input type="checkbox" id="chkEvo" checked style="width:auto; margin:0;">
+                Modo Evolutivo
+            </label>
+        </div>
+    </div>
+
+    <div class="main">
+        <canvas id="artCanvas"></canvas>
+        <button class="btn-dl" onclick="downloadArt()">💾 Baixar HD</button>
+        
+        <div id="loader">
+            <div class="spinner"></div>
+            <p id="statusText" style="margin-top: 15px; color: #e2e8f0;">Iniciando...</p>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURAÇÃO GERAL
         const canvas = document.getElementById('artCanvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         const config = { width: 1920, height: 1080 };
         
         let isRunning = false;
-        let imgData = null; 
+        let imgData = null;
         
         function init() {
             canvas.width = config.width;
             canvas.height = config.height;
-            processUrl("https://picsum.photos/1920/1080", "Iniciando sistema...");
+            // Começa com uma imagem bonita
+            processUrl("https://picsum.photos/1920/1080", "Iniciando sistema...", false);
         }
 
-        function processUrl(url, msg) {
+        // --- MOTOR DE PROCESSAMENTO DE IMAGEM ---
+        function processUrl(url, msg, useProxy = false) {
             setLoading(true, msg);
             isRunning = false;
 
             const img = new Image();
-            img.crossOrigin = "Anonymous"; 
-            
-            // Tratamento de Cache
-            if(url.includes('?')) img.src = url + "&t=" + Date.now();
-            else img.src = url + "?t=" + Date.now();
+            img.crossOrigin = "Anonymous"; // Essencial para Web
+
+            // Se for URL da IA, passamos pelo Proxy para evitar bloqueio
+            if (useProxy) {
+                // O Proxy CORS 'limpa' a imagem para o navegador aceitar
+                img.src = 'https://corsproxy.io/?' + encodeURIComponent(url);
+            } else {
+                // Adiciona timestamp para não cachear imagens normais
+                img.src = url + (url.includes('?') ? "&" : "?") + "t=" + Date.now();
+            }
             
             img.onload = () => {
+                // Cria canvas temporário
                 const off = document.createElement('canvas');
                 off.width = config.width; off.height = config.height;
                 const offCtx = off.getContext('2d');
                 
+                // Centraliza e corta (Object-fit: Cover)
                 const r = Math.max(config.width/img.width, config.height/img.height);
                 const w = img.width*r, h = img.height*r;
                 offCtx.drawImage(img, (config.width-w)/2, (config.height-h)/2, w, h);
                 
                 try {
+                    // Tenta ler os pixels
                     imgData = offCtx.getImageData(0,0, config.width, config.height).data;
                     startAnimation();
                 } catch(e) {
-                    console.error(e);
-                    setLoading(true, "Erro de Segurança (CORS). Tente outro termo.");
+                    console.error("Erro de Segurança (CORS):", e);
+                    setLoading(true, "Navegador bloqueou a imagem. Tentando outra...");
+                    setTimeout(() => runRandom(), 2000);
                 }
             };
             
             img.onerror = () => {
-                setLoading(true, "Falha ao baixar. Tentando aleatório...");
-                setTimeout(() => runRandom(), 2000);
+                console.error("Erro ao baixar imagem:", url);
+                setLoading(true, "Erro na conexão. Tentando alternativa...");
+                // Se a IA falhar, tenta buscar uma foto normal com o mesmo termo
+                setTimeout(() => {
+                    const termo = document.getElementById('aiInput').value || 'abstract';
+                    runSearchWithTerm(termo);
+                }, 2000);
             };
         }
 
         function startAnimation() {
             setLoading(false);
+            // Limpa tela com preto
             ctx.fillStyle = "#000";
             ctx.fillRect(0, 0, config.width, config.height);
             isRunning = true;
@@ -59,7 +160,7 @@
         function drawLoop() {
             if(!isRunning || !imgData) return;
             
-            const speed = 80; // Aumentei um pouco a velocidade
+            const speed = 100; // Velocidade de desenho
             const evolution = document.getElementById('chkEvo').checked;
 
             for(let i=0; i<speed; i++) {
@@ -71,6 +172,7 @@
                 const g = imgData[idx+1];
                 const b = imgData[idx+2];
                 
+                // Ignora cores muito escuras
                 if(r < 15 && g < 15 && b < 15) continue;
 
                 ctx.fillStyle = `rgb(${r},${g},${b})`;
@@ -89,22 +191,29 @@
             requestAnimationFrame(drawLoop);
         }
 
-        // --- FUNÇÃO CORRIGIDA ---
+        // --- FUNÇÕES DOS BOTÕES ---
+        
         function runAI() {
             const txt = document.getElementById('aiInput').value.trim();
-            if(!txt) return;
+            if(!txt) return alert("Digite algo para a IA!");
             
-            const seed = Math.floor(Math.random() * 999999);
-            // Adicionado 'private=true' e encodeURIComponent correto
-            const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(txt)}?width=1280&height=720&model=flux&nologo=true&private=true&seed=${seed}`;
+            const seed = Math.floor(Math.random() * 99999);
+            // Usando modelo 'turbo' (mais rápido) e URL limpa
+            const aiUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(txt)}?width=1280&height=720&model=turbo&nologo=true&seed=${seed}`;
             
-            processUrl(url, "IA Criando (Aguarde)...");
+            // ATENÇÃO: True aqui ativa o proxy
+            processUrl(aiUrl, "IA Criando Arte (Aguarde)...", true);
         }
 
         function runSearch() {
             const txt = document.getElementById('searchInput').value;
-            if(!txt) return;
-            const url = `https://loremflickr.com/1280/720/${encodeURIComponent(txt)}`;
+            runSearchWithTerm(txt);
+        }
+
+        function runSearchWithTerm(termo) {
+            if(!termo) return;
+            // LoremFlickr é muito estável
+            const url = `https://loremflickr.com/1280/720/${encodeURIComponent(termo)}`;
             processUrl(url, "Buscando Imagem...");
         }
 
@@ -112,6 +221,7 @@
             processUrl(`https://picsum.photos/1280/720`, "Sorteando...");
         }
 
+        // UI Helpers
         function openPanel(id) {
             document.querySelectorAll('.input-group').forEach(el => el.style.display = 'none');
             const el = document.getElementById('panel-'+id);
@@ -133,5 +243,8 @@
         
         function handleEnter(e, func) { if(e.key === 'Enter') func(); }
 
+        // Inicia tudo
         init();
     </script>
+</body>
+</html>
