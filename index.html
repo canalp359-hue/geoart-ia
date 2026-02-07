@@ -3,508 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoArt AI Studio - Pro Ultra</title>
+    <title>GeoArt AI - GitHub Edition</title>
     <style>
-        :root {
-            --primary: #8b5cf6;
-            --accent: #f472b6;
-            --dark: #0f172a;
-            --panel: #1e293b;
-            --text: #f8fafc;
-        }
-
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: var(--dark);
-            color: var(--text);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        .header { text-align: center; margin-bottom: 25px; }
-        h1 { 
-            margin: 0; font-weight: 800; letter-spacing: -1px; font-size: 2.5rem;
-            background: linear-gradient(to right, #c084fc, #6366f1); 
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
-        }
-        p { color: #94a3b8; margin-top: 5px; }
-
-        .main-grid {
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 25px;
-            width: 100%;
-            max-width: 1500px;
-            align-items: start;
-        }
-
-        @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
-
-        .sidebar { display: flex; flex-direction: column; gap: 20px; }
-        .panel { background: var(--panel); padding: 20px; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
-        .panel h3 { margin: 0 0 15px 0; color: #cbd5e1; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
-
-        /* Controles Gerais */
-        label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: #94a3b8; }
+        :root { --primary: #8b5cf6; --dark: #0f172a; --panel: #1e293b; --text: #f8fafc; }
+        body { font-family: sans-serif; background: var(--dark); color: var(--text); display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; }
         
-        .control-group { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #334155; }
-        .control-group:last-child { border-bottom: none; margin-bottom: 0; }
-
-        /* Botões */
-        .btn {
-            width: 100%; padding: 12px; border: none; border-radius: 10px;
-            font-weight: 700; cursor: pointer; transition: all 0.2s; 
-            display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 10px;
-            font-size: 1rem;
-        }
-        .btn:hover { filter: brightness(1.15); transform: translateY(-2px); }
-        .btn:active { transform: translateY(0); }
-        .btn-ai { background: linear-gradient(135deg, #ec4899, #8b5cf6); color: white; }
-        .btn-upload { background: #334155; color: white; }
-        .btn-tv { background: #0ea5e9; color: white; }
-        .btn-stop { background: #ef4444; color: white; display: none; }
-        .btn-dl { background: #10b981; color: white; margin-top: 5px; }
-
-        /* Inputs específicos */
-        select, input[type="color"] {
-            width: 100%; padding: 10px; background: #0f172a; border: 1px solid #475569;
-            color: white; border-radius: 8px; cursor: pointer; margin-bottom: 5px;
-        }
-        input[type="color"] { height: 45px; padding: 2px; }
-
-        /* Input IA */
-        #aiPromptContainer {
-            display: none; margin-bottom: 15px; background: #0f172a; padding: 10px;
-            border-radius: 8px; border: 1px solid #ec4899;
-        }
-        #aiPromptInput {
-            width: 100%; background: transparent; border: none; color: white;
-            padding: 8px; font-size: 0.9rem; outline: none; box-sizing: border-box;
-        }
-        #btnGenerateConfirm {
-            background: #ec4899; color: white; border: none; padding: 8px 12px;
-            border-radius: 6px; cursor: pointer; margin-top: 5px; width: 100%; font-weight: bold;
-        }
-
-        /* Canvas */
-        .canvas-wrapper {
-            position: relative; background: #000; border-radius: 16px; overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6); min-height: 500px;
-            display: flex; align-items: center; justify-content: center; border: 2px dashed #334155;
-        }
-        .canvas-wrapper:fullscreen { width: 100vw; height: 100vh; border: none; border-radius: 0; }
-        canvas { width: 100%; height: 100%; object-fit: contain; display: block; opacity: 0; transition: opacity 0.5s; }
+        .main-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; max-width: 1200px; width: 100%; }
+        .controls { background: var(--panel); padding: 20px; border-radius: 12px; min-width: 300px; flex: 1; }
+        .canvas-area { position: relative; background: #000; border-radius: 12px; overflow: hidden; min-height: 400px; flex: 2; border: 2px dashed #334155; display:flex; align-items:center; justify-content:center;}
         
-        .status-overlay {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            text-align: center; pointer-events: none; z-index: 10;
-        }
-        .status-text { color: #94a3b8; font-size: 1.2rem; margin-bottom: 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-        .loader {
-            width: 48px; height: 48px; border: 5px solid #FFF; border-bottom-color: var(--primary);
-            border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; display: none;
-        }
-        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .fullscreen-btn {
-            position: absolute; bottom: 20px; right: 20px;
-            background: rgba(255,255,255,0.1); backdrop-filter: blur(5px);
-            color: white; border: 1px solid rgba(255,255,255,0.2);
-            width: 45px; height: 45px; border-radius: 12px;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            font-size: 1.4rem; transition: 0.2s; z-index: 20;
-        }
-
-        /* Sliders e Checks */
-        input[type=range] { width: 100%; accent-color: var(--primary); cursor: pointer; margin-bottom: 5px;}
-        .checkbox-row { display: flex; gap: 10px; margin-bottom: 8px; color: #cbd5e1; font-size: 0.95rem; cursor: pointer; }
-        input[type=checkbox] { accent-color: var(--accent); transform: scale(1.1); }
+        canvas { width: 100%; height: 100%; object-fit: contain; }
         
-        .value-display { float: right; color: var(--accent); font-size: 0.8rem; font-weight: bold; }
-
+        button, select, input[type="text"] { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 6px; border: none; }
+        button { cursor: pointer; font-weight: bold; background: var(--primary); color: white; transition: 0.2s; }
+        button:hover { filter: brightness(1.2); }
+        input[type="text"] { background: #334155; color: white; }
+        
+        .status { position: absolute; color: white; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 8px; pointer-events: none; display: none; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>GeoArt AI Studio</h1>
-        <p>Arte Geométrica Gerativa & IA</p>
-    </div>
+    <h1>GeoArt AI Studio</h1>
 
-    <div class="main-grid">
-        <div class="sidebar">
-            <div class="panel">
-                <h3>Fonte da Imagem</h3>
-                
-                <button id="btnToggleAI" class="btn btn-ai">✨ Criar com IA</button>
-                <div id="aiPromptContainer">
-                    <input type="text" id="aiPromptInput" placeholder="Ex: Cyberpunk city, neon lights...">
-                    <button id="btnGenerateConfirm">Gerar</button>
-                </div>
-
-                <label class="btn btn-upload">
-                    📂 Upload Imagem
-                    <input type="file" id="fileInput" hidden accept="image/*">
-                </label>
-                
-                <div class="control-group" style="margin-top: 15px;">
-                    <h3>Modo TV (Loop)</h3>
-                    <label>Trocar imagem a cada:</label>
-                    <select id="tvTimerSelect">
-                        <option value="0.2">Flash (10s)</option>
-                        <option value="1" selected>1 Minuto</option>
-                        <option value="2">2 Minutos</option>
-                        <option value="5">5 Minutos</option>
-                    </select>
-                    <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 10px;">
-                        *Se houver texto na IA, gera variantes do tema.
-                    </p>
-                    <div style="display: flex; gap: 10px;">
-                        <button id="btnTvStart" class="btn btn-tv" style="margin:0;">▶ Iniciar TV</button>
-                        <button id="btnTvStop" class="btn btn-stop" style="margin:0;">⏹ Parar</button>
-                    </div>
-                </div>
-
-                <button id="btnDownload" class="btn btn-dl">💾 Salvar Arte</button>
+    <div class="main-container">
+        <div class="controls">
+            <h3>1. Configurar IA</h3>
+            <input type="text" id="promptInput" placeholder="Ex: Cyberpunk city, neon lights...">
+            
+            <h3>2. Modo TV (Tempo)</h3>
+            <select id="timerSelect">
+                <option value="1">1 Minuto</option>
+                <option value="2">2 Minutos</option>
+                <option value="5">5 Minutos</option>
+            </select>
+            
+            <div style="display:flex; gap:10px;">
+                <button id="btnStart" style="background:#10b981;">▶ Iniciar TV</button>
+                <button id="btnStop" style="background:#ef4444; display:none;">⏹ Parar</button>
             </div>
 
-            <div class="panel">
-                <div class="control-group">
-                    <h3>Formas</h3>
-                    <label class="checkbox-row"><input type="checkbox" value="circle" checked> Círculos</label>
-                    <label class="checkbox-row"><input type="checkbox" value="square" checked> Quadrados</label>
-                    <label class="checkbox-row"><input type="checkbox" value="triangle"> Triângulos</label>
-                    <label class="checkbox-row"><input type="checkbox" value="line"> Linhas</label>
-                </div>
+            <hr style="border-color: #334155; margin: 20px 0;">
 
-                <div class="control-group">
-                    <h3>Cores e Fundo</h3>
-                    <label>Cor de Fundo</label>
-                    <input type="color" id="bgColorInput" value="#0f172a">
-                    
-                    <label style="margin-top: 15px;">
-                        Transparência <span id="opacityVal" class="value-display">50%</span>
-                    </label>
-                    <input type="range" id="opacitySlider" min="10" max="100" value="50">
-                </div>
-                
-                <div class="control-group">
-                    <h3>Abstração <span id="abstractVal" class="value-display">50%</span></h3>
-                    <input type="range" id="abstractionSlider" min="1" max="100" value="50">
-                    <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#64748b;">
-                        <span>Detalhado</span>
-                        <span>Abstrato</span>
-                    </div>
-                </div>
-            </div>
+            <h3>3. Estilo</h3>
+            <label>Fundo:</label>
+            <input type="color" id="bgColor" value="#0f172a" style="width:100%; height:40px;">
+            
+            <label>Transparência Formas:</label>
+            <input type="range" id="opacitySlider" min="5" max="100" value="30" style="width:100%;">
+            
+            <button id="btnDownload" style="margin-top:20px;">💾 Salvar Arte</button>
         </div>
 
-        <div class="canvas-wrapper" id="canvasWrapper">
-            <button class="fullscreen-btn" id="fsBtn" title="Tela Cheia">⛶</button>
-            <div class="status-overlay">
-                <span class="loader" id="loader"></span>
-                <div class="status-text" id="statusText">Escolha uma opção<br>para começar.</div>
-            </div>
+        <div class="canvas-area">
+            <div class="status" id="statusMsg">Carregando...</div>
             <canvas id="artCanvas"></canvas>
         </div>
     </div>
 
     <script>
-        // --- ELEMENTOS ---
+        // --- CONFIGURAÇÃO ---
         const canvas = document.getElementById('artCanvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        const wrapper = document.getElementById('canvasWrapper');
-        const statusText = document.getElementById('statusText');
-        const loader = document.getElementById('loader');
-        
-        // Inputs
-        const btnToggleAI = document.getElementById('btnToggleAI');
-        const aiPromptContainer = document.getElementById('aiPromptContainer');
-        const aiPromptInput = document.getElementById('aiPromptInput');
-        const btnGenerateConfirm = document.getElementById('btnGenerateConfirm');
-        
-        // Controles
-        const tvTimerSelect = document.getElementById('tvTimerSelect');
-        const bgColorInput = document.getElementById('bgColorInput');
-        const opacitySlider = document.getElementById('opacitySlider');
-        const opacityVal = document.getElementById('opacityVal');
-        const abstractionSlider = document.getElementById('abstractionSlider');
-        const abstractVal = document.getElementById('abstractVal');
+        const statusMsg = document.getElementById('statusMsg');
 
-        // Estado Global
         let state = {
             running: false,
+            intervalId: null,
             animationId: null,
-            tvIntervalId: null,
-            sourceData: null,
             width: 0,
             height: 0,
-            abstraction: 50,
-            globalOpacity: 0.5,
-            backgroundColor: '#0f172a',
-            shapes: ['circle', 'square'],
-            tvIntervalTime: 60000 
+            pixels: null,
+            bgColor: '#0f172a',
+            opacity: 0.3
         };
 
-        // --- CORE: CARREGAMENTO DE IMAGEM SEGURO (CORS FIX) ---
-        async function carregarImagemSegura(url, loadingMessage = "Processando...") {
-            try {
-                // Para o loop anterior se existir
-                if (state.animationId) cancelAnimationFrame(state.animationId);
-                
-                setLoading(true, loadingMessage);
+        // --- MOTOR DE IMAGEM (CORRIGIDO PARA GITHUB/WEB) ---
+        async function carregarImagem(url) {
+            if(state.animationId) cancelAnimationFrame(state.animationId);
+            
+            statusMsg.style.display = 'block';
+            statusMsg.innerText = "Baixando imagem da IA...";
 
-                // Fetch como blob para evitar contaminação do canvas (Tainted Canvas)
-                const response = await fetch(url, { cache: 'no-cache' });
-                if (!response.ok) throw new Error("Falha na API");
+            try {
+                // Fetch resolve problemas de CORS melhor que Image.src direto
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Erro na API");
                 const blob = await response.blob();
                 const objectUrl = URL.createObjectURL(blob);
 
                 const img = new Image();
+                img.crossOrigin = "Anonymous"; // CRUCIAL PARA O CANVAS FUNCIONAR
+                
                 img.onload = () => {
-                    URL.revokeObjectURL(objectUrl); // Limpa memória
-                    setLoading(false);
-                    iniciarArte(img);
+                    URL.revokeObjectURL(objectUrl);
+                    statusMsg.style.display = 'none';
+                    iniciarGeoArt(img);
                 };
-                img.onerror = () => {
-                    throw new Error("Imagem corrompida");
-                };
+                
+                img.onerror = () => { throw new Error("Imagem inválida"); };
                 img.src = objectUrl;
 
-            } catch (err) {
-                console.error(err);
-                setLoading(false);
-                statusText.innerText = "❌ Erro ao carregar imagem.\nTente novamente.";
-                statusText.style.display = 'block';
-                if (state.running) pararTv();
+            } catch (error) {
+                console.error(error);
+                statusMsg.innerText = "Erro: " + error.message;
             }
         }
 
-        // --- LÓGICA DE IA (Pollinations API) ---
-        function gerarUrlIA(prompt) {
-            const seed = Math.floor(Math.random() * 999999);
-            const safePrompt = encodeURIComponent(prompt + ", highly detailed, 8k resolution, cinematic lighting");
-            // Usa o modelo Flux (melhor qualidade)
-            return `https://image.pollinations.ai/prompt/${safePrompt}?width=1280&height=720&nologo=true&seed=${seed}&model=flux`;
-        }
-
-        btnToggleAI.onclick = () => {
-            aiPromptContainer.style.display = (aiPromptContainer.style.display === 'block') ? 'none' : 'block';
-            if(aiPromptContainer.style.display === 'block') aiPromptInput.focus();
-            pararTv();
-        };
-
-        btnGenerateConfirm.onclick = () => {
-            const prompt = aiPromptInput.value.trim();
-            if(!prompt) return alert("Digite algo para a IA criar!");
-            aiPromptContainer.style.display = 'none';
-            carregarImagemSegura(gerarUrlIA(prompt), "🤖 IA Criando Arte...");
-        };
-
-        aiPromptInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') btnGenerateConfirm.click(); });
-
-        // --- MOTOR DE ARTE GEOMÉTRICA ---
-        function iniciarArte(img) {
-            // Ajuste de escala para performance
-            const maxWidth = 1600; 
-            const scale = Math.min(1, maxWidth / img.width);
-            
+        function iniciarGeoArt(img) {
+            // Configurar Canvas
+            const scale = Math.min(1, 1200 / img.width);
             canvas.width = img.width * scale;
             canvas.height = img.height * scale;
             state.width = canvas.width;
             state.height = canvas.height;
 
-            // Desenha imagem original 1x para capturar dados
+            // Desenhar imagem para ler pixels
             ctx.drawImage(img, 0, 0, state.width, state.height);
             
             try {
-                // Tenta pegar os pixels. Se der erro de segurança, cai no catch.
-                state.sourceData = ctx.getImageData(0, 0, state.width, state.height).data;
-            } catch(e) {
-                alert("Erro de segurança do navegador (CORS). Tente outra imagem.");
+                // Tenta ler os pixels
+                state.pixels = ctx.getImageData(0, 0, state.width, state.height).data;
+            } catch (e) {
+                alert("Erro de Segurança do Navegador! Use HTTPS ou Localhost.");
                 return;
             }
 
-            // Limpa e aplica fundo
-            ctx.fillStyle = state.backgroundColor;
+            // Limpa com a cor de fundo escolhida
+            ctx.fillStyle = state.bgColor;
             ctx.fillRect(0, 0, state.width, state.height);
-            
-            canvas.style.opacity = 1; // Mostra o canvas
+
+            // Inicia Loop
+            if (!state.running) state.running = true;
             loopDesenho();
         }
 
         function loopDesenho() {
-            // Velocidade baseada na abstração (mais abstrato = desenha mais rápido/maiores blocos)
-            const speed = Math.floor(map(state.abstraction, 1, 100, 200, 20));
-            
-            for(let i=0; i<speed; i++) {
+            if (!state.running) return;
+
+            // Desenha 50 formas por frame
+            for(let i=0; i<50; i++) {
                 const x = Math.floor(Math.random() * state.width);
                 const y = Math.floor(Math.random() * state.height);
                 const index = (y * state.width + x) * 4;
-                
-                // Pega cor do pixel original
-                const r = state.sourceData[index];
-                const g = state.sourceData[index+1];
-                const b = state.sourceData[index+2];
-                const alphaSrc = state.sourceData[index+3];
 
-                if (alphaSrc < 50) continue; // Pula áreas vazias
+                const r = state.pixels[index];
+                const g = state.pixels[index+1];
+                const b = state.pixels[index+2];
+                const a = state.pixels[index+3];
 
-                // Tamanho dinâmico
-                const minSize = map(state.abstraction, 1, 100, 2, 10);
-                const maxSize = map(state.abstraction, 1, 100, 6, 120);
-                const size = Math.random() * (maxSize - minSize) + minSize;
-                
-                // Transparência
-                const abstFactor = map(state.abstraction, 1, 100, 1, 0.6); 
-                const finalAlpha = state.globalOpacity * abstFactor;
+                if (a < 50) continue; // Pula pixel transparente
 
-                ctx.fillStyle = `rgba(${r},${g},${b},${finalAlpha})`;
+                ctx.fillStyle = `rgba(${r},${g},${b},${state.opacity})`;
                 
-                // Forma
-                if(state.shapes.length === 0) state.shapes = ['circle'];
-                const shape = state.shapes[Math.floor(Math.random() * state.shapes.length)];
+                const size = Math.random() * 40 + 5;
                 
+                // Desenha Círculo
                 ctx.beginPath();
-                if(shape === 'circle') {
-                    ctx.arc(x, y, size/2, 0, Math.PI*2);
-                    ctx.fill();
-                } 
-                else if(shape === 'square') {
-                    ctx.save();
-                    ctx.translate(x, y);
-                    ctx.rotate(Math.random() * Math.PI); 
-                    ctx.fillRect(-size/2, -size/2, size, size);
-                    ctx.restore();
-                } 
-                else if(shape === 'triangle') {
-                    const h = size * 0.866;
-                    ctx.save();
-                    ctx.translate(x, y);
-                    ctx.rotate(Math.random() * Math.PI * 2);
-                    ctx.moveTo(0, -h/2);
-                    ctx.lineTo(-size/2, h/2);
-                    ctx.lineTo(size/2, h/2);
-                    ctx.fill();
-                    ctx.restore();
-                } 
-                else if(shape === 'line') {
-                    ctx.strokeStyle = `rgba(${r},${g},${b},${Math.min(1, finalAlpha + 0.3)})`;
-                    ctx.lineWidth = Math.max(1, size/15);
-                    ctx.moveTo(x, y);
-                    const angle = Math.random() * Math.PI * 2;
-                    ctx.lineTo(x + Math.cos(angle)*size, y + Math.sin(angle)*size);
-                    ctx.stroke();
-                }
+                ctx.arc(x, y, size/2, 0, Math.PI*2);
+                ctx.fill();
             }
             state.animationId = requestAnimationFrame(loopDesenho);
         }
 
-        // --- CONTROLES MODO TV ---
-        document.getElementById('btnTvStart').onclick = () => {
+        // --- CONTROLES DA TV ---
+        function proximaImagem() {
+            const prompt = document.getElementById('promptInput').value || "Abstract geometric art, colorful";
+            const seed = Math.floor(Math.random() * 999999);
+            // URL DA API POLLINATIONS (MODELO FLUX)
+            const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=768&seed=${seed}&model=flux&nologo=true`;
+            
+            carregarImagem(url);
+        }
+
+        document.getElementById('btnStart').onclick = () => {
             state.running = true;
-            document.getElementById('btnTvStart').style.display = 'none';
-            document.getElementById('btnTvStop').style.display = 'flex';
+            document.getElementById('btnStart').style.display = 'none';
+            document.getElementById('btnStop').style.display = 'block';
             
-            // Roda imediatamente a primeira vez
-            rodarTv();
+            proximaImagem(); // Primeira imagem
             
-            // Define o intervalo
-            const interval = parseFloat(tvTimerSelect.value) * 60000;
-            state.tvIntervalId = setInterval(rodarTv, interval);
+            const minutos = parseInt(document.getElementById('timerSelect').value);
+            state.intervalId = setInterval(proximaImagem, minutos * 60 * 1000);
         };
 
-        function pararTv() {
+        document.getElementById('btnStop').onclick = () => {
             state.running = false;
-            document.getElementById('btnTvStart').style.display = 'flex';
-            document.getElementById('btnTvStop').style.display = 'none';
-            if (state.tvIntervalId) clearInterval(state.tvIntervalId);
-        }
-
-        document.getElementById('btnTvStop').onclick = pararTv;
-
-        function rodarTv() {
-            if (!state.running) return;
-
-            const promptUser = aiPromptInput.value.trim();
-            
-            if (promptUser) {
-                // Modo TV com IA (Variações do prompt)
-                const url = gerarUrlIA(promptUser);
-                carregarImagemSegura(url, `📺 TV IA: Gerando "${promptUser}"...`);
-            } else {
-                // Modo TV Aleatório (Fotos)
-                const url = `https://picsum.photos/1280/720?random=${Date.now()}`;
-                carregarImagemSegura(url, "📺 TV: Trocando canal...");
-            }
-        }
-
-        tvTimerSelect.onchange = (e) => {
-            if (state.running) {
-                clearInterval(state.tvIntervalId);
-                const interval = parseFloat(e.target.value) * 60000;
-                state.tvIntervalId = setInterval(rodarTv, interval);
-            }
+            document.getElementById('btnStart').style.display = 'block';
+            document.getElementById('btnStop').style.display = 'none';
+            clearInterval(state.intervalId);
+            cancelAnimationFrame(state.animationId);
         };
 
-        // --- UI E EVENTOS ---
-        bgColorInput.oninput = (e) => state.backgroundColor = e.target.value;
-        
-        opacitySlider.oninput = (e) => {
-            const val = e.target.value;
-            state.globalOpacity = val / 100;
-            opacityVal.innerText = val + "%";
-        };
-
-        abstractionSlider.oninput = (e) => {
-            state.abstraction = parseInt(e.target.value);
-            abstractVal.innerText = state.abstraction + "%";
-        };
-
-        document.querySelectorAll('input[type=checkbox]').forEach(cb => {
-            cb.onchange = () => {
-                state.shapes = Array.from(document.querySelectorAll('input[type=checkbox]:checked')).map(c => c.value);
-            };
+        // UI Updates
+        document.getElementById('bgColor').addEventListener('input', (e) => {
+            state.bgColor = e.target.value;
+            ctx.fillStyle = state.bgColor;
+            ctx.fillRect(0, 0, state.width, state.height);
         });
 
-        document.getElementById('fileInput').onchange = (e) => {
-            pararTv();
-            const file = e.target.files[0];
-            if(!file) return;
-            const reader = new FileReader();
-            reader.onload = (evt) => {
-                const img = new Image();
-                img.onload = () => iniciarArte(img);
-                img.src = evt.target.result;
-            };
-            reader.readAsDataURL(file);
-        };
+        document.getElementById('opacitySlider').addEventListener('input', (e) => {
+            state.opacity = e.target.value / 100;
+        });
 
         document.getElementById('btnDownload').onclick = () => {
             const link = document.createElement('a');
-            link.download = `GeoArt-${Date.now()}.png`;
-            link.href = canvas.toDataURL('image/png');
+            link.download = 'arte-ia.png';
+            link.href = canvas.toDataURL();
             link.click();
         };
 
-        document.getElementById('fsBtn').onclick = () => {
-            if (!document.fullscreenElement) wrapper.requestFullscreen(); else document.exitFullscreen();
-        };
-
-        // Utils
-        function setLoading(isLoading, text = "") {
-            loader.style.display = isLoading ? 'inline-block' : 'none';
-            statusText.style.display = isLoading ? 'block' : 'none';
-            statusText.innerText = text;
-            if(isLoading) canvas.style.opacity = 0;
-        }
-
-        function map(v, a, b, c, d) { return c + ((v-a)/(b-a)) * (d-c); }
+        // Timer dinâmico
+        document.getElementById('timerSelect').addEventListener('change', (e) => {
+            if(state.running) {
+                clearInterval(state.intervalId);
+                const minutos = parseInt(e.target.value);
+                state.intervalId = setInterval(proximaImagem, minutos * 60 * 1000);
+            }
+        });
 
     </script>
 </body>
