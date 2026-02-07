@@ -277,39 +277,51 @@
             const prompt = aiPromptInput.value.trim();
             if(!prompt) return alert("Digite algo para a IA criar!");
             
+            // Esconder o input após clicar
             aiPromptContainer.style.display = 'none';
             
-            // Encode para URL (seguro)
+            // 1. URL da API
             const safePrompt = encodeURIComponent(prompt);
-            // Semente aleatória para variar as imagens
-            const seed = Math.floor(Math.random() * 99999);
+            const seed = Math.floor(Math.random() * 1000);
+            // Removi o 'model=flux' para garantir maior compatibilidade, mas você pode por de volta se quiser
+            const url = `https://image.pollinations.ai/prompt/${safePrompt}?width=1280&height=720&nologo=true&seed=${seed}&model=flux`;
             
-            // URL DA API (Pollinations)
-            const url = `https://image.pollinations.ai/prompt/${safePrompt}?width=1280&height=720&nologo=true&seed=${seed}`;
+            setLoading(true, "🤖 A IA está sonhando...");
             
-            setLoading(true, `🤖 Gerando: "${prompt}"...`);
-            
-            const img = new Image();
-            img.crossOrigin = "Anonymous"; // CRÍTICO: Permite ler pixels de outro site
-            
-            img.onload = () => {
-                setLoading(false);
-                iniciarArte(img);
-            };
-            
-            img.onerror = (e) => {
-                console.error("Erro IA:", e);
-                setLoading(false);
-                statusText.innerHTML = "❌ Erro ao baixar imagem da IA.<br>Verifique se sua internet bloqueia conexões externas.";
-                statusText.style.display = 'block';
-                
-                // Fallback Opcional
-                if(confirm("A IA falhou (talvez bloqueio de segurança). Quer tentar uma imagem aleatória simples?")) {
-                   document.getElementById('btnTvStart').click();
-                }
-            };
-            
-            img.src = url;
+            // 2. CORREÇÃO AQUI: Usar fetch para baixar como Blob
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error("Erro na API");
+                    return response.blob();
+                })
+                .then(blob => {
+                    // Cria uma URL local temporária para a imagem baixada
+                    const objectUrl = URL.createObjectURL(blob);
+                    
+                    const img = new Image();
+                    // Importante manter o crossOrigin, mesmo com blob, por segurança
+                    img.crossOrigin = "Anonymous"; 
+                    
+                    img.onload = () => {
+                        setLoading(false);
+                        iniciarArte(img);
+                        // Limpa a memória da URL temporária
+                        URL.revokeObjectURL(objectUrl);
+                    };
+                    
+                    img.onerror = () => {
+                        throw new Error("Falha ao processar imagem");
+                    };
+                    
+                    img.src = objectUrl;
+                })
+                .catch(err => {
+                    console.error(err);
+                    setLoading(false);
+                    statusText.innerText = "❌ Erro: O navegador bloqueou a imagem ou a IA falhou.";
+                    statusText.style.display = 'block';
+                    alert("Dica: Tente um navegador diferente ou verifique se extensões de bloqueio de anúncios não estão impedindo a API.");
+                });
         };
 
         // Atalho Enter
@@ -512,4 +524,5 @@
 
     </script>
 </body>
+
 </html>
